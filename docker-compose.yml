@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  chatbot:
+    build: .
+    container_name: piper-ollama-chatbot
+    stdin_open: true      # Keep stdin open for interactive input
+    tty: true             # Allocate a pseudo-TTY
+    environment:
+      - OLLAMA_URL=http://host.docker.internal:11434
+    # For audio playback on Linux host (optional)
+    # devices:
+    #   - /dev/snd:/dev/snd
+    # For audio playback on Windows/Mac, audio won't work in container
+    # Consider outputting to a mounted volume instead
+    volumes:
+      # Mount a directory for audio output (optional)
+      - ./output:/app/output
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Linux compatibility
+
