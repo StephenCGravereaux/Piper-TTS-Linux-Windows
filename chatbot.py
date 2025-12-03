@@ -20,6 +20,15 @@ import platform
 from pathlib import Path
 
 
+# Voice model download URLs (from Piper GitHub releases)
+VOICE_URLS = {
+    "en_US-lessac-medium.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx",
+    "en_US-lessac-medium.onnx.json": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json",
+    "en_US-lessac-high.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/high/en_US-lessac-high.onnx",
+    "en_US-lessac-high.onnx.json": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/high/en_US-lessac-high.onnx.json",
+}
+
+
 class OllamaPiperChatbot:
     def __init__(self, model_name="llama3.2", voice_model=None, ollama_url="http://localhost:11434"):
         self.model_name = model_name
@@ -35,6 +44,7 @@ class OllamaPiperChatbot:
         self._check_ollama()
         self._ensure_model()
         self._check_piper()
+        self._ensure_voice_model()
 
         print("✅ Ready!\n")
 
@@ -196,6 +206,55 @@ class OllamaPiperChatbot:
         except:
             print("❌ Piper not found! Install with: pip install piper-tts")
             sys.exit(1)
+
+    def _ensure_voice_model(self):
+        """Download voice model if not present."""
+        voice_path = Path(self.voice_model)
+        json_path = Path(str(self.voice_model) + ".json")
+
+        # Create voices directory if needed
+        voices_dir = voice_path.parent
+        voices_dir.mkdir(parents=True, exist_ok=True)
+
+        # Download voice model if missing
+        if not voice_path.exists():
+            voice_name = voice_path.name
+            if voice_name in VOICE_URLS:
+                print(f"📥 Downloading voice model '{voice_name}'...")
+                try:
+                    response = requests.get(VOICE_URLS[voice_name], stream=True)
+                    response.raise_for_status()
+                    total = int(response.headers.get('content-length', 0))
+                    downloaded = 0
+                    with open(voice_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                            downloaded += len(chunk)
+                            if total > 0:
+                                pct = (downloaded / total) * 100
+                                print(f"\r   Downloading: {pct:.1f}%", end="", flush=True)
+                    print(f"\n✅ Voice model downloaded")
+                except Exception as e:
+                    print(f"\n❌ Failed to download voice: {e}")
+                    sys.exit(1)
+            else:
+                print(f"❌ Voice model not found: {voice_path}")
+                sys.exit(1)
+
+        # Download JSON config if missing
+        if not json_path.exists():
+            json_name = json_path.name
+            if json_name in VOICE_URLS:
+                print(f"📥 Downloading voice config '{json_name}'...")
+                try:
+                    response = requests.get(VOICE_URLS[json_name])
+                    response.raise_for_status()
+                    with open(json_path, 'wb') as f:
+                        f.write(response.content)
+                    print(f"✅ Voice config downloaded")
+                except Exception as e:
+                    print(f"❌ Failed to download config: {e}")
+                    sys.exit(1)
 
     def text_to_speech(self, text):
         """Convert text to speech using Piper."""
