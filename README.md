@@ -204,5 +204,6 @@ This is a minimal demonstration project. Voice models are from the Piper TTS pro
 
 ---
 
-**Enjoy your local voice chatbot!** 🎉
+
+
 
