@@ -18,7 +18,7 @@ piper_ollama_minimal/
 
 ## 🚀 Quick Start
 
-### Option A: Docker (Recommended)
+### Option A: Docker (Recommended) Note: Docker contrainers are isolated from your host's audio system. On Windows/Mac containers can't access your sound card directly. Use option B if you need to hear the voice responses.
 
 ```bash
 # Pull the image
@@ -205,3 +205,4 @@ This is a minimal demonstration project. Voice models are from the Piper TTS pro
 ---
 
 **Enjoy your local voice chatbot!** 🎉
+
